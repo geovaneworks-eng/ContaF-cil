@@ -1,55 +1,131 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { supabase } from '@/src/integrations/supabase/client';
-import { Auth } from '@supabase/auth-ui-react';
-import { ThemeSupa } from '@supabase/auth-ui-shared';
 import FinancialInsightBanner from '@/components/FinancialInsightBanner';
 
 const AuthPage: React.FC = () => {
+    const [isLoginView, setIsLoginView] = useState(true);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+        const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+        if (error) {
+            setError('Email ou senha inválidos.');
+        }
+        setLoading(false);
+    };
+
+    const handleSignUp = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+        const { error } = await supabase.auth.signUp({
+            email,
+            password,
+        });
+        if (error) {
+            setError(error.message);
+        } else {
+            alert('Registo efetuado! Por favor, verifique o seu email para confirmar a sua conta.');
+            setIsLoginView(true);
+        }
+        setLoading(false);
+    };
+
+    const clearForm = () => {
+        setEmail('');
+        setPassword('');
+        setError(null);
+    };
+
+    const toggleView = () => {
+        setIsLoginView(!isLoginView);
+        clearForm();
+    };
+
+    const AuthForm = ({ isLogin }: { isLogin: boolean }) => (
+        <form onSubmit={isLogin ? handleLogin : handleSignUp} className="space-y-6">
+            <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                    Email
+                </label>
+                <div className="mt-1">
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        autoComplete="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                </div>
+            </div>
+
+            <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                    Senha
+                </label>
+                <div className="mt-1">
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        autoComplete={isLogin ? "current-password" : "new-password"}
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                </div>
+            </div>
+
+            <div>
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                >
+                    {loading ? (isLogin ? 'A entrar...' : 'A registar...') : (isLogin ? 'Entrar' : 'Registar')}
+                </button>
+            </div>
+        </form>
+    );
+
     return (
         <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
             <div className="w-full max-w-md mx-auto">
-                <div className="text-center mb-8">
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-                        Conta Fácil
-                    </h1>
-                    <p className="text-gray-600 mt-2">A sua vida financeira, simplificada.</p>
-                </div>
                 <div className="bg-white p-8 rounded-2xl shadow-xl">
-                    <Auth
-                        supabaseClient={supabase}
-                        appearance={{ theme: ThemeSupa }}
-                        providers={[]}
-                        theme="light"
-                        localization={{
-                            variables: {
-                                sign_in: {
-                                    email_label: 'Endereço de email',
-                                    password_label: 'Sua senha',
-                                    email_input_placeholder: 'seu.email@exemplo.com',
-                                    password_input_placeholder: 'Sua senha',
-                                    button_label: 'Entrar',
-                                    social_provider_text: 'Entrar com {{provider}}',
-                                    link_text: 'Já tem uma conta? Entre',
-                                },
-                                sign_up: {
-                                    email_label: 'Endereço de email',
-                                    password_label: 'Crie uma senha',
-                                    email_input_placeholder: 'seu.email@exemplo.com',
-                                    password_input_placeholder: 'Crie uma senha forte',
-                                    button_label: 'Registar',
-                                    social_provider_text: 'Registar com {{provider}}',
-                                    link_text: 'Não tem uma conta? Registe-se',
-                                },
-                                forgotten_password: {
-                                    email_label: 'Endereço de email',
-                                    password_label: 'Sua senha',
-                                    email_input_placeholder: 'seu.email@exemplo.com',
-                                    button_label: 'Enviar instruções',
-                                    link_text: 'Esqueceu a sua senha?',
-                                },
-                            },
-                        }}
-                    />
+                    <div className="text-left mb-8">
+                        <h2 className="text-3xl font-bold text-gray-900">
+                            {isLoginView ? 'Bem-vindo de volta!' : 'Crie a sua conta'}
+                        </h2>
+                        <p className="mt-2 text-sm text-gray-600">
+                            {isLoginView ? 'Faça login para gerir as suas finanças.' : 'Comece a organizar as suas finanças hoje mesmo.'}
+                        </p>
+                    </div>
+                    
+                    <AuthForm isLogin={isLoginView} />
+
+                    {error && <p className="mt-4 text-center text-sm text-red-600">{error}</p>}
+
+                    <div className="mt-6 text-center">
+                        <p className="text-sm text-gray-600">
+                            {isLoginView ? 'Não tem uma conta?' : 'Já tem uma conta?'}
+                            <button onClick={toggleView} className="font-medium text-blue-600 hover:text-blue-500 ml-1">
+                                {isLoginView ? 'Registe-se' : 'Entre'}
+                            </button>
+                        </p>
+                    </div>
                 </div>
             </div>
             <div className="absolute bottom-0 w-full">
