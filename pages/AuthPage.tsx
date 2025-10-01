@@ -110,7 +110,13 @@ const AuthPage: React.FC = () => {
             password,
         });
         if (error) {
-            setError('Email ou senha inválidos.');
+            if (error.message === 'Invalid login credentials') {
+                setError('Email ou senha inválidos.');
+            } else if (error.message === 'Email not confirmed') {
+                setError('Por favor, confirme o seu email para fazer o login. Verifique a sua caixa de entrada.');
+            } else {
+                setError('Ocorreu um erro ao tentar fazer login.');
+            }
         }
         setLoading(false);
     };
