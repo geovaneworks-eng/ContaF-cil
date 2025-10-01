@@ -25,8 +25,8 @@ const SidebarContent: React.FC<{ isCollapsed: boolean, onToggleCollapse?: () => 
     const { logout } = useAuth();
     const navigate = useNavigate();
 
-    const handleLogout = () => {
-        logout();
+    const handleLogout = async () => {
+        await logout();
         navigate('/');
     };
 

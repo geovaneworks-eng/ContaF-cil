@@ -28,17 +28,18 @@ const DashboardPage: React.FC = () => {
     }, [transactions]);
 
     const handleUpgrade = async () => {
-        // Mock Stripe checkout and backend update
         if(user) {
           console.log("Initiating upgrade for user:", user.id);
-          // In a real app, this would redirect to Stripe
           alert("A simular o checkout do Stripe... Após a confirmação, o seu plano será atualizado.");
           
-          // Mock backend webhook confirmation
-          setTimeout(() => {
-            const updatedUser = {...user, plan: 'Pro' as 'Pro'};
-            updateUser(updatedUser);
-            alert("Parabéns! O seu plano foi atualizado para Pro.");
+          setTimeout(async () => {
+            try {
+              await updateUser({ plan: 'Pro' });
+              alert("Parabéns! O seu plano foi atualizado para Pro.");
+            } catch (error) {
+              console.error("Failed to upgrade plan", error);
+              alert("Ocorreu um erro ao atualizar o seu plano.");
+            }
           }, 2000);
         }
     };
