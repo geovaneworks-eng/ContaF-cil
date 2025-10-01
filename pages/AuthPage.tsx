@@ -6,6 +6,7 @@ const AuthPage: React.FC = () => {
     const [isLoginView, setIsLoginView] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [fullName, setFullName] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -30,6 +31,11 @@ const AuthPage: React.FC = () => {
         const { error } = await supabase.auth.signUp({
             email,
             password,
+            options: {
+                data: {
+                    full_name: fullName,
+                },
+            },
         });
         if (error) {
             setError(error.message);
@@ -43,6 +49,7 @@ const AuthPage: React.FC = () => {
     const clearForm = () => {
         setEmail('');
         setPassword('');
+        setFullName('');
         setError(null);
     };
 
@@ -53,6 +60,25 @@ const AuthPage: React.FC = () => {
 
     const AuthForm = ({ isLogin }: { isLogin: boolean }) => (
         <form onSubmit={isLogin ? handleLogin : handleSignUp} className="space-y-6">
+            {!isLogin && (
+                 <div>
+                    <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
+                        Como gostaria de ser chamado?
+                    </label>
+                    <div className="mt-1">
+                        <input
+                            id="fullName"
+                            name="fullName"
+                            type="text"
+                            autoComplete="name"
+                            required
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        />
+                    </div>
+                </div>
+            )}
             <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                     Email
@@ -107,10 +133,10 @@ const AuthPage: React.FC = () => {
                 <div className="bg-white p-8 rounded-2xl shadow-xl">
                     <div className="text-left mb-8">
                         <h2 className="text-3xl font-bold text-gray-900">
-                            {isLoginView ? 'Bem-vindo de volta!' : 'Crie a sua conta'}
+                            {isLoginView ? 'Bem-vindo de volta!' : 'Crie sua conta'}
                         </h2>
                         <p className="mt-2 text-sm text-gray-600">
-                            {isLoginView ? 'Faça login para gerir as suas finanças.' : 'Comece a organizar as suas finanças hoje mesmo.'}
+                            {isLoginView ? 'Faça login para gerir as suas finanças.' : 'Comece a organizar a sua vida financeira hoje.'}
                         </p>
                     </div>
                     
@@ -122,7 +148,7 @@ const AuthPage: React.FC = () => {
                         <p className="text-sm text-gray-600">
                             {isLoginView ? 'Não tem uma conta?' : 'Já tem uma conta?'}
                             <button onClick={toggleView} className="font-medium text-blue-600 hover:text-blue-500 ml-1">
-                                {isLoginView ? 'Registe-se' : 'Entre'}
+                                {isLoginView ? 'Registe-se' : 'Faça login'}
                             </button>
                         </p>
                     </div>
