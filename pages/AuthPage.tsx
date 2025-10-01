@@ -119,7 +119,7 @@ const AuthPage: React.FC = () => {
         e.preventDefault();
         setLoading(true);
         setError(null);
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
             email,
             password,
             options: {
@@ -128,13 +128,21 @@ const AuthPage: React.FC = () => {
                 },
             },
         });
+        setLoading(false);
+
         if (error) {
             setError(error.message);
-        } else {
+            return;
+        }
+
+        if (data.session) {
+            return;
+        }
+
+        if (data.user) {
             alert('Registo efetuado! Por favor, verifique o seu email para confirmar a sua conta.');
             setIsLoginView(true);
         }
-        setLoading(false);
     };
 
     const clearForm = () => {
