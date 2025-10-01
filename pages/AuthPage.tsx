@@ -1,8 +1,8 @@
 import React from 'react';
-import { supabase } from '../integrations/supabase/client';
+import { supabase } from '@/src/integrations/supabase/client';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
-import FinancialInsightBanner from '../components/FinancialInsightBanner';
+import FinancialInsightBanner from '@/src/components/FinancialInsightBanner';
 
 const AuthPage: React.FC = () => {
     return (
