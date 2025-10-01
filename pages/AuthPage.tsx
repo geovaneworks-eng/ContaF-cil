@@ -131,7 +131,11 @@ const AuthPage: React.FC = () => {
         setLoading(false);
 
         if (error) {
-            setError(error.message);
+            if (error.message === 'User already registered') {
+                setError('Este email já está registado. Tente fazer login.');
+            } else {
+                setError(error.message);
+            }
             return;
         }
 
