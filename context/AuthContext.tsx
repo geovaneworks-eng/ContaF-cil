@@ -7,8 +7,6 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
-  login: (email: string, password_not_used: string) => Promise<void>;
-  register: (name: string, email: string, password_not_used: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (user: Partial<User>) => Promise<void>;
 }
@@ -58,38 +56,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, [fetchUserProfile]);
 
-  const login = async (email: string, password_not_used: string) => {
-    setLoading(true);
-    setError(null);
-    const { error } = await supabase.auth.signInWithPassword({ email, password: password_not_used });
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-      throw error;
-    }
-    setLoading(false);
-  };
-
-  const register = async (name: string, email: string, password_not_used: string) => {
-    setLoading(true);
-    setError(null);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password: password_not_used,
-      options: {
-        data: {
-          full_name: name,
-        },
-      },
-    });
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-      throw error;
-    }
-    setLoading(false);
-  };
-
   const logout = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -116,7 +82,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, error, logout, updateUser }}>
       {!loading && children}
     </AuthContext.Provider>
   );
