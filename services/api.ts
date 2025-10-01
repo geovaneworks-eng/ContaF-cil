@@ -1,5 +1,5 @@
-import { supabase } from '../integrations/supabase/client';
-import { Transaction, FixedExpense, WishlistItem } from '../types';
+import { supabase } from '@/src/integrations/supabase/client';
+import { Transaction, FixedExpense, WishlistItem } from '@/types';
 
 // --- Transactions ---
 export const apiGetTransactions = async (userId: string): Promise<Transaction[]> => {
