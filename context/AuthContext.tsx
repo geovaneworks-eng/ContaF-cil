@@ -27,12 +27,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (error) {
       console.warn('Não foi possível buscar o perfil completo do usuário, usando valores padrão:', error.message);
-      // Retorna um objeto de usuário básico para mantê-lo logado
       return {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
-        name: supabaseUser.email?.split('@')[0] || 'Usuário', // Nome padrão
-        plan: 'Gratuito', // Plano padrão
+        name: supabaseUser.email?.split('@')[0] || 'Usuário',
+        plan: 'Gratuito',
       };
     }
 
@@ -45,10 +44,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
     const initializeSession = async () => {
       try {
-        const { data } = await supabase.auth.getSession(); // Obter o objeto de dados completo
-        const session = data?.session; // Aceder à sessão de forma segura
+        // Adiciona um tempo limite para a busca da sessão
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise<any>((_, reject) => 
+          timeoutId = setTimeout(() => reject(new Error("Supabase session fetch timed out")), 5000) // 5 segundos de tempo limite
+        );
+
+        const { data } = await Promise.race([sessionPromise, timeoutPromise]);
+        clearTimeout(timeoutId); // Limpa o tempo limite se sessionPromise resolver primeiro
+
+        const session = data?.session;
 
         if (session?.user) {
           const profile = await fetchUserProfile(session.user);
@@ -56,9 +65,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } else {
           setUser(null);
         }
-      } catch (err) {
-        console.error("Erro ao inicializar a sessão:", err);
-        setError("Falha ao inicializar a sessão.");
+      } catch (err: any) {
+        console.error("Erro ao inicializar a sessão:", err.message);
+        setError(err.message || "Falha ao inicializar a sessão.");
         setUser(null);
       } finally {
         setLoading(false);
@@ -77,6 +86,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     return () => {
+      clearTimeout(timeoutId); // Limpa o tempo limite ao desmontar
       subscription.unsubscribe();
     };
   }, [fetchUserProfile]);
@@ -93,7 +103,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .from('profiles')
       .update({ plan: updatedFields.plan })
       .eq('id', user.id)
-      .select('plan') // Select only the updated field
+      .select('plan')
       .single();
 
     if (error) {
