@@ -21,15 +21,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const fetchUserProfile = useCallback(async (supabaseUser: SupabaseUser): Promise<User> => {
     console.log("AuthContext: Fetching user profile for", supabaseUser.id);
     console.log("AuthContext: Attempting to query 'profiles' table...");
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('full_name, plan')
-      .eq('id', supabaseUser.id)
-      .single();
+    
+    let data, profileError; // Renomeado 'error' para 'profileError' para evitar conflito
+    try {
+      console.log("AuthContext: Executing Supabase query for profile...");
+      const result = await supabase
+        .from('profiles')
+        .select('full_name, plan')
+        .eq('id', supabaseUser.id)
+        .single();
+      data = result.data;
+      profileError = result.error;
+      console.log("AuthContext: Supabase query for profile completed.");
+    } catch (e: any) {
+      console.error("AuthContext: Uncaught error during Supabase profile query:", e);
+      profileError = { message: e.message || "Unknown error during profile query" }; // Padroniza o objeto de erro
+    }
 
-    if (error) {
-      console.error('AuthContext: Erro ao buscar perfil do usuário:', error.message); // Log de erro mais forte
-      console.warn('AuthContext: Não foi possível buscar o perfil completo do usuário, usando valores padrão:', error.message);
+    if (profileError) {
+      console.error('AuthContext: Erro ao buscar perfil do usuário:', profileError.message);
+      console.warn('AuthContext: Não foi possível buscar o perfil completo do usuário, usando valores padrão:', profileError.message);
       return {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
