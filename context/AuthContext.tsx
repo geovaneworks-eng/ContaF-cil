@@ -44,9 +44,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   useEffect(() => {
-    const checkSession = async () => {
+    setLoading(true);
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           const profile = await fetchUserProfile(session.user);
           setUser(profile);
@@ -54,21 +55,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setUser(null);
         }
       } catch (e) {
-        console.error("Error checking session:", e);
+        console.error("Error processing auth state change", e);
         setUser(null);
       } finally {
         setLoading(false);
-      }
-    };
-
-    checkSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        const profile = await fetchUserProfile(session.user);
-        setUser(profile);
-      } else {
-        setUser(null);
       }
     });
 
