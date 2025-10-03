@@ -19,6 +19,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [error, setError] = useState<string | null>(null);
 
   const fetchUserProfile = useCallback(async (supabaseUser: SupabaseUser): Promise<User> => {
+    console.log("AuthContext: Fetching user profile for", supabaseUser.id);
     const { data, error } = await supabase
       .from('profiles')
       .select('full_name, plan')
@@ -26,7 +27,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .single();
 
     if (error) {
-      console.warn('Não foi possível buscar o perfil completo do usuário, usando valores padrão:', error.message);
+      console.warn('AuthContext: Não foi possível buscar o perfil completo do usuário, usando valores padrão:', error.message);
       return {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
@@ -34,7 +35,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         plan: 'Gratuito',
       };
     }
-
+    console.log("AuthContext: User profile fetched:", data);
     return {
       id: supabaseUser.id,
       email: supabaseUser.email || '',
@@ -44,26 +45,40 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   useEffect(() => {
+    console.log("AuthContext: useEffect triggered.");
     const initializeSession = async () => {
+        console.log("AuthContext: initializeSession started.");
         try {
-            const { data: { session } } = await supabase.auth.getSession();
+            console.log("AuthContext: Calling supabase.auth.getSession()...");
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            if (sessionError) {
+                console.error("AuthContext: Error getting session:", sessionError);
+                setError(sessionError.message);
+            }
+            console.log("AuthContext: supabase.auth.getSession() returned:", session);
             if (session?.user) {
+                console.log("AuthContext: Session user found, fetching profile.");
                 const profile = await fetchUserProfile(session.user);
                 setUser(profile);
             } else {
+                console.log("AuthContext: No session user found.");
                 setUser(null);
             }
-        } catch (e) {
-            console.error("Error initializing session", e);
+        } catch (e: any) { // Catch any potential network errors or other issues
+            console.error("AuthContext: Error during initializeSession:", e);
+            setError(e.message || "Erro desconhecido ao inicializar a sessão.");
             setUser(null);
         } finally {
+            console.log("AuthContext: initializeSession finished, setting loading to false.");
             setLoading(false);
         }
     };
 
     initializeSession();
     
+    console.log("AuthContext: Setting up onAuthStateChange listener.");
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log("AuthContext: onAuthStateChange event:", event, "session:", session);
         if (session?.user) {
             const profile = await fetchUserProfile(session.user);
             setUser(profile);
@@ -73,6 +88,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     return () => {
+      console.log("AuthContext: Cleaning up onAuthStateChange subscription.");
       subscription.unsubscribe();
     };
   }, [fetchUserProfile]);
