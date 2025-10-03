@@ -20,6 +20,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const fetchUserProfile = useCallback(async (supabaseUser: SupabaseUser): Promise<User> => {
     console.log("AuthContext: Fetching user profile for", supabaseUser.id);
+    console.log("AuthContext: Attempting to query 'profiles' table...");
     const { data, error } = await supabase
       .from('profiles')
       .select('full_name, plan')
@@ -27,6 +28,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .single();
 
     if (error) {
+      console.error('AuthContext: Erro ao buscar perfil do usuário:', error.message); // Log de erro mais forte
       console.warn('AuthContext: Não foi possível buscar o perfil completo do usuário, usando valores padrão:', error.message);
       return {
         id: supabaseUser.id,
@@ -35,7 +37,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         plan: 'Gratuito',
       };
     }
-    console.log("AuthContext: User profile fetched:", data);
+    console.log("AuthContext: User profile fetched successfully:", data);
     return {
       id: supabaseUser.id,
       email: supabaseUser.email || '',
