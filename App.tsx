@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
 import AuthPage from './pages/AuthPage';
@@ -11,15 +11,9 @@ import WishlistPage from './pages/WishlistPage';
 import MainLayout from './components/MainLayout';
 import CalendarPage from './pages/CalendarPage';
 
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    // Pode-se renderizar um spinner ou uma tela de carregamento aqui
-    return <div className="flex items-center justify-center min-h-screen text-gray-700">A carregar...</div>;
-  }
-
-  return user ? <>{children}</> : <Navigate to="/" />;
+const ProtectedLayout: React.FC = () => {
+  const { user } = useAuth();
+  return user ? <MainLayout><Outlet /></MainLayout> : <Navigate to="/" />;
 };
 
 const AppRoutes: React.FC = () => {
@@ -32,12 +26,15 @@ const AppRoutes: React.FC = () => {
     return (
         <Routes>
             <Route path="/" element={user ? <Navigate to="/dashboard" /> : <AuthPage />} />
-            <Route path="/dashboard" element={<ProtectedRoute><MainLayout><DashboardPage /></MainLayout></ProtectedRoute>} />
-            <Route path="/transactions" element={<ProtectedRoute><MainLayout><TransactionsPage /></MainLayout></ProtectedRoute>} />
-            <Route path="/fixed-expenses" element={<ProtectedRoute><MainLayout><FixedExpensesPage /></MainLayout></ProtectedRoute>} />
-            <Route path="/reports" element={<ProtectedRoute><MainLayout><ReportsPage /></MainLayout></ProtectedRoute>} />
-            <Route path="/calendar" element={<ProtectedRoute><MainLayout><CalendarPage /></MainLayout></ProtectedRoute>} />
-            <Route path="/wishlist" element={<ProtectedRoute><MainLayout><WishlistPage /></MainLayout></ProtectedRoute>} />
+            
+            <Route element={<ProtectedLayout />}>
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/transactions" element={<TransactionsPage />} />
+                <Route path="/fixed-expenses" element={<FixedExpensesPage />} />
+                <Route path="/reports" element={<ReportsPage />} />
+                <Route path="/calendar" element={<CalendarPage />} />
+                <Route path="/wishlist" element={<WishlistPage />} />
+            </Route>
         </Routes>
     );
 };
