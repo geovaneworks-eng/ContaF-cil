@@ -22,24 +22,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log("AuthContext: Fetching user profile for", supabaseUser.id);
     console.log("AuthContext: Attempting to query 'profiles' table...");
     
-    let data, profileError; // Renomeado 'error' para 'profileError' para evitar conflito
+    let data, profileError;
     try {
-      console.log("AuthContext: Executing Supabase query for profile...");
+      console.log("AuthContext: Executing simplified Supabase query for profile...");
+      // Alteração aqui: Removendo .eq() e .single() para testar uma consulta mais básica
       const result = await supabase
         .from('profiles')
-        .select('full_name, plan')
-        .eq('id', supabaseUser.id)
-        .single();
+        .select('full_name, plan'); // Apenas seleciona tudo, sem filtro ou single
       data = result.data;
       profileError = result.error;
-      console.log("AuthContext: Supabase query for profile completed.");
+      console.log("AuthContext: Simplified Supabase query for profile completed.");
     } catch (e: any) {
-      console.error("AuthContext: Uncaught error during Supabase profile query:", e);
-      profileError = { message: e.message || "Unknown error during profile query" }; // Padroniza o objeto de erro
+      console.error("AuthContext: Uncaught error during simplified Supabase profile query:", e);
+      profileError = { message: e.message || "Unknown error during profile query" };
     }
 
     if (profileError) {
-      console.error('AuthContext: Erro ao buscar perfil do usuário:', profileError.message);
+      console.error('AuthContext: Erro ao buscar perfil do usuário (simplificado):', profileError.message);
       console.warn('AuthContext: Não foi possível buscar o perfil completo do usuário, usando valores padrão:', profileError.message);
       return {
         id: supabaseUser.id,
@@ -48,12 +47,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         plan: 'Gratuito',
       };
     }
-    console.log("AuthContext: User profile fetched successfully:", data);
+    console.log("AuthContext: User profile fetched successfully (simplified):", data);
+    // Se a consulta simplificada retornar múltiplos perfis, pegamos o primeiro ou um padrão
+    const userProfileData = data && data.length > 0 ? data[0] : null;
+
     return {
       id: supabaseUser.id,
       email: supabaseUser.email || '',
-      name: data.full_name || supabaseUser.email?.split('@')[0] || 'Usuário',
-      plan: data.plan || 'Gratuito',
+      name: userProfileData?.full_name || supabaseUser.email?.split('@')[0] || 'Usuário',
+      plan: userProfileData?.plan || 'Gratuito',
     };
   }, []);
 
@@ -77,7 +79,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 console.log("AuthContext: No session user found.");
                 setUser(null);
             }
-        } catch (e: any) { // Catch any potential network errors or other issues
+        } catch (e: any) {
             console.error("AuthContext: Error during initializeSession:", e);
             setError(e.message || "Erro desconhecido ao inicializar a sessão.");
             setUser(null);
