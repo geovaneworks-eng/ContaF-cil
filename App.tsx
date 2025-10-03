@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -13,12 +12,22 @@ import MainLayout from './components/MainLayout';
 import CalendarPage from './pages/CalendarPage';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    // Pode-se renderizar um spinner ou uma tela de carregamento aqui
+    return <div className="flex items-center justify-center min-h-screen text-gray-700">A carregar...</div>;
+  }
+
   return user ? <>{children}</> : <Navigate to="/" />;
 };
 
 const AppRoutes: React.FC = () => {
-    const { user } = useAuth();
+    const { user, loading } = useAuth();
+
+    if (loading) {
+        return <div className="flex items-center justify-center min-h-screen text-gray-700">A carregar aplicação...</div>;
+    }
 
     return (
         <Routes>
