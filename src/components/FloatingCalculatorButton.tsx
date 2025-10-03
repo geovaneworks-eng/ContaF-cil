@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { CalculatorIcon } from './icons';
-import CalculatorModal from './CalculatorModal';
+import { CalculatorIcon } from '@/components/icons';
+import CalculatorModal from '@/components/CalculatorModal';
 
 const FloatingCalculatorButton: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);

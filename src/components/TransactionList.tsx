@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Transaction, TransactionType } from '@/types';
 import { formatCurrency, formatDate } from '@/utils/formatters';
-import { TrashIcon, PencilIcon } from './icons';
-import TransactionModal from './TransactionModal';
-import ConfirmationModal from './ConfirmationModal';
+import { TrashIcon, PencilIcon } from '@/components/icons';
+import TransactionModal from '@/components/TransactionModal';
+import ConfirmationModal from '@/components/ConfirmationModal';
 import { useData } from '@/context/DataContext';
 
 interface TransactionListProps {

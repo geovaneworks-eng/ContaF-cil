@@ -1,15 +1,15 @@
 import React from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { DataProvider } from './context/DataContext';
-import AuthPage from './pages/AuthPage';
-import DashboardPage from './pages/DashboardPage';
-import TransactionsPage from './pages/TransactionsPage';
-import FixedExpensesPage from './pages/FixedExpensesPage';
-import ReportsPage from './pages/ReportsPage';
-import WishlistPage from './pages/WishlistPage';
-import MainLayout from './components/MainLayout';
-import CalendarPage from './pages/CalendarPage';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { DataProvider } from '@/context/DataContext';
+import AuthPage from '@/pages/AuthPage';
+import DashboardPage from '@/pages/DashboardPage';
+import TransactionsPage from '@/pages/TransactionsPage';
+import FixedExpensesPage from '@/pages/FixedExpensesPage';
+import ReportsPage from '@/pages/ReportsPage';
+import WishlistPage from '@/pages/WishlistPage';
+import MainLayout from '@/components/MainLayout';
+import CalendarPage from '@/pages/CalendarPage';
 
 const ProtectedLayout: React.FC = () => {
   const { user } = useAuth();
