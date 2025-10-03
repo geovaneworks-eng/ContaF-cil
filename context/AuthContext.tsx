@@ -44,49 +44,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-
-    const initializeSession = async () => {
+    setLoading(true);
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       try {
-        // Adiciona um tempo limite para a busca da sessão
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise<any>((_, reject) => 
-          timeoutId = setTimeout(() => reject(new Error("Supabase session fetch timed out")), 5000) // 5 segundos de tempo limite
-        );
-
-        const { data } = await Promise.race([sessionPromise, timeoutPromise]);
-        clearTimeout(timeoutId); // Limpa o tempo limite se sessionPromise resolver primeiro
-
-        const session = data?.session;
-
         if (session?.user) {
           const profile = await fetchUserProfile(session.user);
           setUser(profile);
         } else {
           setUser(null);
         }
-      } catch (err: any) {
-        console.error("Erro ao inicializar a sessão:", err.message);
-        setError(err.message || "Falha ao inicializar a sessão.");
+      } catch (e) {
+        console.error("Error processing auth state change", e);
         setUser(null);
       } finally {
         setLoading(false);
       }
-    };
-
-    initializeSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        const profile = await fetchUserProfile(session.user);
-        setUser(profile);
-      } else {
-        setUser(null);
-      }
     });
 
     return () => {
-      clearTimeout(timeoutId); // Limpa o tempo limite ao desmontar
       subscription.unsubscribe();
     };
   }, [fetchUserProfile]);
