@@ -18,24 +18,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchUserProfile = useCallback(async (supabaseUser: SupabaseUser) => {
+  const fetchUserProfile = useCallback(async (supabaseUser: SupabaseUser): Promise<User> => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select('full_name, plan')
       .eq('id', supabaseUser.id)
       .single();
 
     if (error) {
-      console.error('Error fetching profile:', error);
-      setError(error.message);
-      return null;
+      console.warn('Não foi possível buscar o perfil completo do usuário, usando valores padrão:', error.message);
+      // Retorna um objeto de usuário básico para mantê-lo logado
+      return {
+        id: supabaseUser.id,
+        email: supabaseUser.email || '',
+        name: supabaseUser.email?.split('@')[0] || 'Usuário', // Nome padrão
+        plan: 'Gratuito', // Plano padrão
+      };
     }
 
     return {
       id: supabaseUser.id,
       email: supabaseUser.email || '',
-      name: data.full_name,
-      plan: data.plan,
+      name: data.full_name || supabaseUser.email?.split('@')[0] || 'Usuário',
+      plan: data.plan || 'Gratuito',
     };
   }, []);
 
@@ -81,7 +86,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .from('profiles')
       .update({ plan: updatedFields.plan })
       .eq('id', user.id)
-      .select()
+      .select('plan') // Select only the updated field
       .single();
 
     if (error) {
