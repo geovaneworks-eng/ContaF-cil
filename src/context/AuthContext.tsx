@@ -44,22 +44,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   useEffect(() => {
-    setLoading(true);
+    const initializeSession = async () => {
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+                const profile = await fetchUserProfile(session.user);
+                setUser(profile);
+            } else {
+                setUser(null);
+            }
+        } catch (e) {
+            console.error("Error initializing session", e);
+            setUser(null);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    initializeSession();
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      try {
         if (session?.user) {
-          const profile = await fetchUserProfile(session.user);
-          setUser(profile);
+            const profile = await fetchUserProfile(session.user);
+            setUser(profile);
         } else {
-          setUser(null);
+            setUser(null);
         }
-      } catch (e) {
-        console.error("Error processing auth state change", e);
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
     });
 
     return () => {
