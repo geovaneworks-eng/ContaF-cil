@@ -1,8 +1,7 @@
-
 import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
-import { Transaction, FixedExpense, WishlistItem } from '../types';
-import { useAuth } from './AuthContext';
-import * as api from '../services/api';
+import { Transaction, FixedExpense, WishlistItem } from '@/types';
+import { useAuth } from '@/context/AuthContext';
+import * as api from '@/services/api';
 
 interface DataContextType {
   transactions: Transaction[];

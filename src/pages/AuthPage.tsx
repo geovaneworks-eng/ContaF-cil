@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabase } from '@/src/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import FinancialInsightBanner from '@/components/FinancialInsightBanner';
 
 interface AuthFormProps {

@@ -1,7 +1,6 @@
-
 import React from 'react';
-import { useData } from '../context/DataContext';
-import FullPageExpenseCalendar from '../components/FullPageExpenseCalendar';
+import { useData } from '@/context/DataContext';
+import FullPageExpenseCalendar from '@/components/FullPageExpenseCalendar';
 
 const CalendarPage: React.FC = () => {
     const { transactions, loading } = useData();

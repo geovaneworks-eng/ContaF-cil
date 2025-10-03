@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { useData } from '../context/DataContext';
-import { Transaction, TransactionType } from '../types';
+import { useData } from '@/context/DataContext';
+import { Transaction, TransactionType } from '@/types';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { formatCurrency } from '../utils/formatters';
-import { ChevronDownIcon } from '../components/icons';
-import ExpenseCalendar from '../components/ExpenseCalendar';
+import { formatCurrency } from '@/utils/formatters';
+import { ChevronDownIcon } from '@/components/icons';
+import ExpenseCalendar from '@/components/ExpenseCalendar';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 

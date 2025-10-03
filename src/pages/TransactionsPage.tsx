@@ -1,10 +1,9 @@
-
 import React, { useState, useMemo } from 'react';
-import { useData } from '../context/DataContext';
-import TransactionList from '../components/TransactionList';
-import TransactionModal from '../components/TransactionModal';
-import { PlusCircleIcon } from '../components/icons';
-import { Transaction, TransactionCategories } from '../types';
+import { useData } from '@/context/DataContext';
+import TransactionList from '@/components/TransactionList';
+import TransactionModal from '@/components/TransactionModal';
+import { PlusCircleIcon } from '@/components/icons';
+import { Transaction, TransactionCategories } from '@/types';
 
 const TransactionsPage: React.FC = () => {
     const { transactions, loading } = useData();

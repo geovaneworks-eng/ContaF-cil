@@ -1,11 +1,10 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
-import { useData } from '../context/DataContext';
-import { WishlistItem } from '../types';
-import { useAuth } from '../context/AuthContext';
-import ConfirmationModal from '../components/ConfirmationModal';
-import { formatCurrency } from '../utils/formatters';
-import { TrashIcon, PencilIcon, PlusIcon } from '../components/icons';
+import { useData } from '@/context/DataContext';
+import { WishlistItem } from '@/types';
+import { useAuth } from '@/context/AuthContext';
+import ConfirmationModal from '@/components/ConfirmationModal';
+import { formatCurrency } from '@/utils/formatters';
+import { TrashIcon, PencilIcon, PlusIcon } from '@/components/icons';
 
 const WishlistPage: React.FC = () => {
     const { user } = useAuth();

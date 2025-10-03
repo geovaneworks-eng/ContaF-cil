@@ -1,4 +1,4 @@
-import { supabase } from '@/src/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { Transaction, FixedExpense, WishlistItem } from '@/types';
 
 // Helper para converter de camelCase (app) para snake_case (db)

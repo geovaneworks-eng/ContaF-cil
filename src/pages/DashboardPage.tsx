@@ -1,14 +1,14 @@
 import React, { useState, useMemo } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useData } from '../context/DataContext';
+import { useAuth } from '@/context/AuthContext';
+import { useData } from '@/context/DataContext';
 import { useNavigate } from 'react-router-dom';
-import { Transaction, TransactionType } from '../types';
-import TransactionModal from '../components/TransactionModal';
-import SummaryCard from '../components/SummaryCard';
-import TransactionList from '../components/TransactionList';
-import Minicourse from '../components/Minicourse';
-import LevelProgressBar from '../components/LevelProgressBar';
-import { PlusCircleIcon, DocumentTextIcon, ChartBarIcon } from '../components/icons';
+import { Transaction, TransactionType } from '@/types';
+import TransactionModal from '@/components/TransactionModal';
+import SummaryCard from '@/components/SummaryCard';
+import TransactionList from '@/components/TransactionList';
+import Minicourse from '@/components/Minicourse';
+import LevelProgressBar from '@/components/LevelProgressBar';
+import { PlusCircleIcon, DocumentTextIcon, ChartBarIcon } from '@/components/icons';
 
 const DashboardPage: React.FC = () => {
     const { user, updateUser } = useAuth();
