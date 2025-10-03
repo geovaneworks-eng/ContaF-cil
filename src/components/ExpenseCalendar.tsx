@@ -18,7 +18,6 @@ const DayCell: React.FC<{ day: Date; isCurrentMonth: boolean; expenses: Transact
             )}
             {hasExpenses && (
                 <div className="absolute top-full left-1/2 -translate-x-1/2 z-10 w-64 p-3 bg-gray-800 text-white rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 pointer-events-none">
-                     {/* FIX: Corrected typo from `toLocaleDate-string` to `toLocaleDateString`. */}
                      <h4 className="font-bold text-sm mb-2 border-b border-gray-600 pb-1">Despesas do dia {day.toLocaleDateString('pt-BR')}</h4>
                      <ul className="space-y-1 text-xs">
                         {expenses.map(exp => (
@@ -43,7 +42,6 @@ const ExpenseCalendar: React.FC<{ transactions: Transaction[] }> = ({ transactio
         transactions
             .filter(tx => tx.type === TransactionType.Despesa)
             .forEach(tx => {
-                // Adjust for timezone before getting date string
                 const date = new Date(tx.date);
                 const userTimezoneOffset = date.getTimezoneOffset() * 60000;
                 const adjustedDate = new Date(date.getTime() + userTimezoneOffset);
@@ -61,16 +59,13 @@ const ExpenseCalendar: React.FC<{ transactions: Transaction[] }> = ({ transactio
         const daysInMonth = new Date(year, month + 1, 0).getDate();
 
         const days = [];
-        // Previous month's padding
         for (let i = firstDayOfMonth; i > 0; i--) {
             days.push(new Date(year, month, 1 - i));
         }
-        // Current month's days
         for (let i = 1; i <= daysInMonth; i++) {
             days.push(new Date(year, month, i));
         }
-        // Next month's padding
-        const remainingCells = 42 - days.length; // 6 rows * 7 days
+        const remainingCells = 42 - days.length;
         for (let i = 1; i <= remainingCells; i++) {
             days.push(new Date(year, month + 1, i));
         }
