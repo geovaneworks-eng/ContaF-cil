@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '@/context/DataContext';
-import { FixedExpense, Months } from '@/types';
+import { FixedExpense, Months, ExpenseCategories } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { formatCurrency } from '@/utils/formatters';
@@ -12,6 +12,7 @@ const FixedExpensesPage: React.FC = () => {
     
     const [description, setDescription] = useState('');
     const [amount, setAmount] = useState('');
+    const [category, setCategory] = useState(ExpenseCategories[0].name);
     const [editingExpense, setEditingExpense] = useState<FixedExpense | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     
@@ -23,6 +24,7 @@ const FixedExpensesPage: React.FC = () => {
             setDescription(editingExpense.description);
             setAmount(String(editingExpense.amount));
             setSelectedMonth(editingExpense.month);
+            setCategory(editingExpense.category);
         }
     }, [editingExpense]);
 
@@ -37,6 +39,7 @@ const FixedExpensesPage: React.FC = () => {
     const handleClearForm = () => {
         setDescription('');
         setAmount('');
+        setCategory(ExpenseCategories[0].name);
         setEditingExpense(null);
     };
 
@@ -48,6 +51,7 @@ const FixedExpensesPage: React.FC = () => {
             description,
             amount: parseFloat(amount),
             month: selectedMonth,
+            category,
         };
 
         if (editingExpense) {
@@ -72,7 +76,7 @@ const FixedExpensesPage: React.FC = () => {
 
                 <form onSubmit={handleSubmit} className="mb-8 p-6 border rounded-lg bg-gray-50">
                     <h2 className="text-xl font-semibold mb-4 text-gray-700">{editingExpense ? 'Editar Gasto Fixo' : 'Adicionar Gasto Fixo'}</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                         <input
                             type="text"
                             placeholder="Descrição"
@@ -89,6 +93,13 @@ const FixedExpensesPage: React.FC = () => {
                             className="w-full p-2 border rounded"
                             required
                         />
+                        <select
+                            value={category}
+                            onChange={e => setCategory(e.target.value)}
+                            className="w-full p-2 border rounded bg-white"
+                        >
+                            {ExpenseCategories.map(cat => <option key={cat.name} value={cat.name}>{cat.emoji} {cat.name}</option>)}
+                        </select>
                         <select
                             value={selectedMonth}
                             onChange={e => setSelectedMonth(e.target.value)}
@@ -112,10 +123,13 @@ const FixedExpensesPage: React.FC = () => {
                 {loading ? <p>A carregar...</p> : (
                     <div>
                         <ul className="space-y-3">
-                            {filteredExpenses.map(fe => (
+                            {filteredExpenses.map(fe => {
+                                const categoryEmoji = ExpenseCategories.find(c => c.name === fe.category)?.emoji || '';
+                                return (
                                 <li key={fe.id} className="flex justify-between items-center p-4 border rounded-lg hover:bg-gray-50">
                                     <div className="flex-1">
                                         <p className="font-semibold text-gray-800">{fe.description}</p>
+                                        <p className="text-sm text-gray-500">{categoryEmoji} {fe.category}</p>
                                     </div>
                                     <p className="font-bold text-red-500 text-lg w-32 text-right">{formatCurrency(fe.amount)}</p>
                                     <div className="flex gap-2 ml-4">
@@ -123,7 +137,7 @@ const FixedExpensesPage: React.FC = () => {
                                         <button onClick={() => setDeletingId(fe.id)} className="text-gray-500 hover:text-red-600"><TrashIcon/></button>
                                     </div>
                                 </li>
-                            ))}
+                            )})}
                         </ul>
                          {filteredExpenses.length === 0 && <p className="text-center text-gray-500 py-8">Nenhum gasto fixo para {selectedMonth}.</p>}
                     </div>

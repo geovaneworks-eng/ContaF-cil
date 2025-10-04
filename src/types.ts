@@ -27,6 +27,7 @@ export interface FixedExpense {
   description: string;
   amount: number;
   month: string;
+  category: string;
 }
 
 export interface WishlistItem {
@@ -35,6 +36,7 @@ export interface WishlistItem {
   description: string;
   amount: number;
   purchased: boolean;
+  category: string;
 }
 
 export interface Category {
