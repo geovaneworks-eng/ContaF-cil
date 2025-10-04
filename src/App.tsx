@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { DataProvider } from '@/context/DataContext';
 import AuthPage from '@/pages/AuthPage';
@@ -12,50 +12,60 @@ import MainLayout from '@/components/MainLayout';
 import CalendarPage from '@/pages/CalendarPage';
 import SplashScreen from '@/components/SplashScreen';
 
-const ProtectedLayout: React.FC = () => {
-  const { user } = useAuth();
-  return user ? <MainLayout><Outlet /></MainLayout> : <Navigate to="/" />;
+// Componente para proteger rotas que exigem autenticação
+const PrivateRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <SplashScreen />;
+  }
+
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <MainLayout>{children}</MainLayout>;
 };
 
-const AppRoutes: React.FC = () => {
-    const { user } = useAuth();
-
-    return (
-        <Routes>
-            <Route path="/" element={user ? <Navigate to="/dashboard" /> : <AuthPage />} />
-            
-            <Route element={<ProtectedLayout />}>
-                <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/transactions" element={<TransactionsPage />} />
-                <Route path="/fixed-expenses" element={<FixedExpensesPage />} />
-                <Route path="/reports" element={<ReportsPage />} />
-                <Route path="/calendar" element={<CalendarPage />} />
-                <Route path="/wishlist" element={<WishlistPage />} />
-            </Route>
-        </Routes>
-    );
-};
-
-// Este componente decide se mostra a tela de carregamento ou a aplicação principal
-const AppContent: React.FC = () => {
-    const { loading } = useAuth();
+// Componente para a rota de autenticação, que redireciona se o utilizador já estiver logado
+const PublicRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
+    const { user, loading } = useAuth();
 
     if (loading) {
         return <SplashScreen />;
     }
 
-    return <AppRoutes />;
+    if (user) {
+        return <Navigate to="/dashboard" replace />;
+    }
+
+    return children;
 };
 
+// Estrutura principal das rotas da aplicação
+const AppRoutes: React.FC = () => {
+    return (
+        <Routes>
+            <Route path="/" element={<PublicRoute><AuthPage /></PublicRoute>} />
+            
+            <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
+            <Route path="/transactions" element={<PrivateRoute><TransactionsPage /></PrivateRoute>} />
+            <Route path="/fixed-expenses" element={<PrivateRoute><FixedExpensesPage /></PrivateRoute>} />
+            <Route path="/reports" element={<PrivateRoute><ReportsPage /></PrivateRoute>} />
+            <Route path="/calendar" element={<PrivateRoute><CalendarPage /></PrivateRoute>} />
+            <Route path="/wishlist" element={<PrivateRoute><WishlistPage /></PrivateRoute>} />
+
+            <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+    );
+};
 
 const App: React.FC = () => {
   return (
-    <div 
-        className="min-h-screen bg-white"
-    >
+    <div className="min-h-screen bg-white">
         <AuthProvider>
             <DataProvider>
-                <AppContent />
+                <AppRoutes />
             </DataProvider>
         </AuthProvider>
     </div>

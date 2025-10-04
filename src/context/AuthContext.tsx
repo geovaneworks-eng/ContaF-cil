@@ -38,7 +38,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   useEffect(() => {
-    // 1. Verificação inicial da sessão, executada apenas uma vez.
     const getInitialSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -54,14 +53,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.error("Erro ao recuperar sessão inicial:", err.message);
         setUser(null);
       } finally {
-        // 2. A garantia crucial: o carregamento termina sempre.
         setLoading(false);
       }
     };
 
     getInitialSession();
 
-    // 3. Monitora mudanças futuras (login, logout, etc.).
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
         if (session?.user) {
             const fullProfile = await fetchUserProfile(session.user);
