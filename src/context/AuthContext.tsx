@@ -27,6 +27,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (profileError) {
       console.error('AuthContext: Erro ao buscar perfil do usuário:', profileError.message);
+      throw profileError;
     }
 
     return {
@@ -38,20 +39,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   useEffect(() => {
-    // Função para verificar a sessão inicial de forma fiável.
     const checkInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const fullProfile = await fetchUserProfile(session.user);
-        setUser(fullProfile);
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+            throw sessionError;
+        }
+
+        if (session?.user) {
+          const fullProfile = await fetchUserProfile(session.user);
+          setUser(fullProfile);
+        } else {
+          setUser(null);
+        }
+      } catch (e: any) {
+        console.error("Erro ao verificar a sessão inicial:", e.message);
+        setError(e.message);
+        setUser(null);
+      } finally {
+        // Este bloco é a garantia de que o carregamento sempre termina.
+        setLoading(false);
       }
-      // Independentemente de haver sessão ou não, o carregamento inicial termina aqui.
-      setLoading(false);
     };
 
     checkInitialSession();
 
-    // Configura o listener para MUDANÇAS de estado futuras (login, logout, etc.).
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         const fullProfile = await fetchUserProfile(session.user);
