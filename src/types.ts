@@ -1,9 +1,9 @@
-
 export interface User {
   id: string;
   name: string;
   email: string;
   plan: 'Gratuito' | 'Pro';
+  avatarUrl?: string | null;
 }
 
 export enum TransactionType {

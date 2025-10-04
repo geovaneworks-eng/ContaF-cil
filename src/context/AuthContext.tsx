@@ -21,7 +21,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const fetchUserProfile = useCallback(async (supabaseUser: SupabaseUser): Promise<User> => {
     const fetchPromise = supabase
       .from('profiles')
-      .select('full_name, plan')
+      .select('full_name, plan, avatar_url')
       .eq('id', supabaseUser.id)
       .single();
 
@@ -41,6 +41,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         email: supabaseUser.email || '',
         name: userProfileData?.full_name || supabaseUser.email?.split('@')[0] || 'Usuário',
         plan: userProfileData?.plan || 'Gratuito',
+        avatarUrl: userProfileData?.avatar_url,
       };
     } catch (err) {
       console.error('AuthContext: Timeout ou erro de rede ao buscar perfil.', err);
@@ -90,7 +91,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     });
 
-    // Adiciona um listener para revalidar a sessão quando a aba/janela ganha foco
     const handleFocus = async () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (isMounted && session?.user) {
@@ -116,11 +116,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateUser = async (updatedFields: Partial<User>) => {
     if (!user) return;
 
+    const supabaseUpdates: { [key: string]: any } = {};
+    if (updatedFields.name !== undefined) supabaseUpdates.full_name = updatedFields.name;
+    if (updatedFields.plan !== undefined) supabaseUpdates.plan = updatedFields.plan;
+    if (updatedFields.avatarUrl !== undefined) supabaseUpdates.avatar_url = updatedFields.avatarUrl;
+
+    if (Object.keys(supabaseUpdates).length === 0) return;
+
     const { data, error } = await supabase
       .from('profiles')
-      .update({ plan: updatedFields.plan })
+      .update(supabaseUpdates)
       .eq('id', user.id)
-      .select('plan')
+      .select('full_name, plan, avatar_url')
       .single();
 
     if (error) {
@@ -129,7 +136,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     if (data) {
-        setUser(prevUser => ({ ...prevUser!, plan: data.plan }));
+        setUser(prevUser => ({
+            ...prevUser!,
+            name: data.full_name,
+            plan: data.plan,
+            avatarUrl: data.avatar_url,
+        }));
     }
   };
 

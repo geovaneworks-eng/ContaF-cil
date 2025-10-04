@@ -8,7 +8,7 @@ import SummaryCard from '@/components/SummaryCard';
 import TransactionList from '@/components/TransactionList';
 import Minicourse from '@/components/Minicourse';
 import LevelProgressBar from '@/components/LevelProgressBar';
-import { PlusCircleIcon, DocumentTextIcon, ChartBarIcon } from '@/components/icons';
+import { PlusCircleIcon, DocumentTextIcon, ChartBarIcon, UserIcon } from '@/components/icons';
 
 const DashboardPage: React.FC = () => {
     const { user, updateUser } = useAuth();
@@ -51,7 +51,16 @@ const DashboardPage: React.FC = () => {
             {/* Header */}
             <div>
                 <div className="flex justify-between items-start gap-4">
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">Olá, {user?.name}!</h1>
+                    <div className="flex items-center gap-4">
+                        {user?.avatarUrl ? (
+                            <img src={user.avatarUrl} alt="Avatar" className="w-16 h-16 rounded-full object-cover" />
+                        ) : (
+                            <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                                <UserIcon />
+                            </div>
+                        )}
+                        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">Olá, {user?.name}!</h1>
+                    </div>
                     <div className="flex-shrink-0">
                         {user?.plan === 'Gratuito' && (
                             <div className="text-sm text-center md:text-right bg-white p-3 rounded-lg shadow-md">

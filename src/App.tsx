@@ -10,6 +10,7 @@ import ReportsPage from '@/pages/ReportsPage';
 import WishlistPage from '@/pages/WishlistPage';
 import MainLayout from '@/components/MainLayout';
 import CalendarPage from '@/pages/CalendarPage';
+import SettingsPage from '@/pages/SettingsPage';
 import SplashScreen from '@/components/SplashScreen';
 
 // Componente para proteger rotas que exigem autenticação
@@ -54,6 +55,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/reports" element={<PrivateRoute><ReportsPage /></PrivateRoute>} />
             <Route path="/calendar" element={<PrivateRoute><CalendarPage /></PrivateRoute>} />
             <Route path="/wishlist" element={<PrivateRoute><WishlistPage /></PrivateRoute>} />
+            <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { HomeIcon, ListIcon, CalendarIcon, ReportsIcon, LogoutIcon, MenuIcon, CloseIcon, ChevronLeftIcon, StarIcon, CalendarDaysIcon } from '@/components/icons';
+import { HomeIcon, ListIcon, CalendarIcon, ReportsIcon, LogoutIcon, MenuIcon, CloseIcon, ChevronLeftIcon, StarIcon, CalendarDaysIcon, SettingsIcon } from '@/components/icons';
 import FloatingCalculatorButton from '@/components/FloatingCalculatorButton';
 import FinancialInsightBanner from '@/components/FinancialInsightBanner';
 
@@ -50,6 +50,7 @@ const SidebarContent: React.FC<{ isCollapsed: boolean, onToggleCollapse?: () => 
                 <NavItem to="/wishlist" isCollapsed={isCollapsed} icon={<StarIcon />} label="Lista de Desejos" />
                 <NavItem to="/reports" isCollapsed={isCollapsed} icon={<ReportsIcon />} label="Relatórios" />
                 <NavItem to="/calendar" isCollapsed={isCollapsed} icon={<CalendarDaysIcon />} label="Calendário" />
+                <NavItem to="/settings" isCollapsed={isCollapsed} icon={<SettingsIcon />} label="Configurações" />
             </nav>
             <div className="border-t pt-2">
                 <button onClick={handleLogout} className={`flex items-center h-12 px-4 w-full rounded-lg text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors ${isCollapsed ? 'justify-center' : 'justify-start'}`}>
