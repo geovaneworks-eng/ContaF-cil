@@ -15,9 +15,11 @@ const TestimonialCard: React.FC = () => {
                 <p className="text-lg font-medium text-gray-700">"Depois que passei a utilizar esse aplicativo minha vida financeira mudou para melhor já recomendei para todos da minha família aplicativo bom pratico e intuitivo."</p>
             </blockquote>
             <figcaption className="flex items-center justify-center mt-6 space-x-3">
-                <div className="w-10 h-10 rounded-full bg-purple-200 flex items-center justify-center text-purple-600 font-bold">
-                    JS
-                </div>
+                <img 
+                    className="w-10 h-10 rounded-full object-cover" 
+                    src="https://images.pexels.com/photos/1848565/pexels-photo-1848565.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
+                    alt="Foto de Juliana S." 
+                />
                 <div className="flex items-center divide-x-2 divide-gray-500">
                     <cite className="pr-3 font-medium text-gray-900">Juliana S.</cite>
                     <cite className="pl-3 text-sm text-gray-500">Utilizadora Verificada</cite>
