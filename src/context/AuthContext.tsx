@@ -15,10 +15,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(true); // Começa a carregar
   const [error, setError] = useState<string | null>(null);
 
-  const fetchUserProfile = useCallback(async (supabaseUser: SupabaseUser, existingUser: User | null = null): Promise<User> => {
+  const fetchUserProfile = useCallback(async (supabaseUser: SupabaseUser): Promise<User> => {
     const { data: userProfileData, error: profileError } = await supabase
       .from('profiles')
       .select('full_name, plan')
@@ -29,55 +29,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.error('AuthContext: Erro ao buscar perfil do usuário:', profileError.message);
     }
 
-    // Retorna o usuário combinado, priorizando os dados do perfil, mas mantendo os dados existentes como fallback
     return {
       id: supabaseUser.id,
       email: supabaseUser.email || '',
-      name: userProfileData?.full_name || existingUser?.name || supabaseUser.email?.split('@')[0] || 'Usuário',
-      plan: userProfileData?.plan || existingUser?.plan || 'Gratuito',
+      name: userProfileData?.full_name || supabaseUser.email?.split('@')[0] || 'Usuário',
+      plan: userProfileData?.plan || 'Gratuito',
     };
   }, []);
 
   useEffect(() => {
-    const initializeSession = async () => {
-      // 1. Obter a sessão. Esta é a chamada mais crítica.
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-      if (sessionError) {
-        setError(sessionError.message);
-      }
-
+    // O onAuthStateChange do Supabase é a forma mais fiável de obter os dados da sessão.
+    // Ele é acionado uma vez no carregamento inicial com a sessão atual e, em seguida, sempre que o estado de autenticação muda.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
-        // 2. Se houver uma sessão, crie um usuário preliminar IMEDIATAMENTE.
-        const preliminaryUser: User = {
-          id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.email?.split('@')[0] || 'Usuário', // Nome temporário
-          plan: 'Gratuito', // Plano padrão temporário
-        };
-        setUser(preliminaryUser);
-
-        // 3. Em segundo plano, busque o perfil completo e atualize o estado.
-        fetchUserProfile(session.user, preliminaryUser).then(fullProfile => {
-          setUser(fullProfile);
-        });
+        const fullProfile = await fetchUserProfile(session.user);
+        setUser(fullProfile);
       } else {
         setUser(null);
       }
-
-      // 4. Pare o carregamento. A UI pode agora ser renderizada.
+      // Na primeira vez que isto é executado, a sessão é restaurada e podemos parar de carregar.
       setLoading(false);
-    };
-
-    initializeSession();
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-        if (event === 'SIGNED_IN' && session?.user) {
-            const fullProfile = await fetchUserProfile(session.user);
-            setUser(fullProfile);
-        } else if (event === 'SIGNED_OUT') {
-            setUser(null);
-        }
     });
 
     return () => {

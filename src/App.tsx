@@ -10,6 +10,7 @@ import ReportsPage from '@/pages/ReportsPage';
 import WishlistPage from '@/pages/WishlistPage';
 import MainLayout from '@/components/MainLayout';
 import CalendarPage from '@/pages/CalendarPage';
+import SplashScreen from '@/components/SplashScreen';
 
 const ProtectedLayout: React.FC = () => {
   const { user } = useAuth();
@@ -17,11 +18,7 @@ const ProtectedLayout: React.FC = () => {
 };
 
 const AppRoutes: React.FC = () => {
-    const { user, loading } = useAuth();
-
-    if (loading) {
-        return <div className="flex items-center justify-center min-h-screen text-gray-700">A carregar aplicação...</div>;
-    }
+    const { user } = useAuth();
 
     return (
         <Routes>
@@ -39,6 +36,17 @@ const AppRoutes: React.FC = () => {
     );
 };
 
+// Este componente decide se mostra a tela de carregamento ou a aplicação principal
+const AppContent: React.FC = () => {
+    const { loading } = useAuth();
+
+    if (loading) {
+        return <SplashScreen />;
+    }
+
+    return <AppRoutes />;
+};
+
 
 const App: React.FC = () => {
   return (
@@ -47,7 +55,7 @@ const App: React.FC = () => {
     >
         <AuthProvider>
             <DataProvider>
-                <AppRoutes />
+                <AppContent />
             </DataProvider>
         </AuthProvider>
     </div>
