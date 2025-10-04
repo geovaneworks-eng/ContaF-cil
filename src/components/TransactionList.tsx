@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Transaction, TransactionType } from '@/types';
+import { Transaction, TransactionType, AllTransactionCategories } from '@/types';
 import { formatCurrency, formatDate } from '@/utils/formatters';
 import { TrashIcon, PencilIcon } from '@/components/icons';
 import TransactionModal from '@/components/TransactionModal';
@@ -22,6 +22,8 @@ const TransactionItem: React.FC<{ transaction: Transaction }> = ({ transaction }
     };
 
     const isIncome = transaction.type === TransactionType.Receita;
+    const category = AllTransactionCategories.find(cat => cat.name === transaction.category);
+    const categoryEmoji = category ? category.emoji : '';
 
     return (
         <>
@@ -30,7 +32,7 @@ const TransactionItem: React.FC<{ transaction: Transaction }> = ({ transaction }
                     <div className={`w-2 h-10 rounded-full ${isIncome ? 'bg-green-500' : 'bg-red-500'}`}></div>
                     <div>
                         <p className="font-semibold text-gray-800">{transaction.description}</p>
-                        <p className="text-sm text-gray-500">{transaction.category} - {formatDate(transaction.date)}</p>
+                        <p className="text-sm text-gray-500">{categoryEmoji} {transaction.category} - {formatDate(transaction.date)}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-4 self-end sm:self-center">
