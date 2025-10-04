@@ -6,7 +6,6 @@ import { User } from '@/types';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  error: string | null;
   logout: () => Promise<void>;
   updateUser: (user: Partial<User>) => Promise<void>;
 }
@@ -16,7 +15,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
 
   const fetchUserProfile = useCallback(async (supabaseUser: SupabaseUser): Promise<User> => {
     const fetchPromise = supabase
@@ -131,7 +129,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .single();
 
     if (error) {
-      setError(error.message);
       throw error;
     }
 
@@ -146,7 +143,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
