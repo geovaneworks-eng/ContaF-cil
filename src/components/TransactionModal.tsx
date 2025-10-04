@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Transaction, TransactionType, TransactionCategories } from '@/types';
+import { Transaction, TransactionType, IncomeCategories, ExpenseCategories } from '@/types';
 import { useData } from '@/context/DataContext';
 
 interface TransactionModalProps {
@@ -12,12 +12,14 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ onClose, transactio
     const [description, setDescription] = useState('');
     const [amount, setAmount] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    const [category, setCategory] = useState(TransactionCategories[0]);
+    const [category, setCategory] = useState(ExpenseCategories[0].name);
     const { addTransaction, updateTransaction } = useData();
     const isEditing = !!transaction;
 
+    const categoriesToShow = type === TransactionType.Receita ? IncomeCategories : ExpenseCategories;
+
     useEffect(() => {
-        if (isEditing) {
+        if (isEditing && transaction) {
             setType(transaction.type);
             setDescription(transaction.description);
             setAmount(String(transaction.amount));
@@ -25,6 +27,15 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ onClose, transactio
             setCategory(transaction.category);
         }
     }, [isEditing, transaction]);
+
+    const handleTypeChange = (newType: TransactionType) => {
+        setType(newType);
+        const newCategories = newType === TransactionType.Receita ? IncomeCategories : ExpenseCategories;
+        // Reset category if it's not in the new list
+        if (!newCategories.some(c => c.name === category)) {
+            setCategory(newCategories[0].name);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -56,8 +67,8 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ onClose, transactio
                     <div>
                         <label className="block text-gray-700 font-semibold mb-2">Tipo</label>
                         <div className="flex gap-4">
-                            <button type="button" onClick={() => setType(TransactionType.Receita)} className={`flex-1 py-2 rounded-lg ${type === TransactionType.Receita ? 'bg-green-500 text-white' : 'bg-gray-200'}`}>Receita</button>
-                            <button type="button" onClick={() => setType(TransactionType.Despesa)} className={`flex-1 py-2 rounded-lg ${type === TransactionType.Despesa ? 'bg-red-500 text-white' : 'bg-gray-200'}`}>Despesa</button>
+                            <button type="button" onClick={() => handleTypeChange(TransactionType.Receita)} className={`flex-1 py-2 rounded-lg ${type === TransactionType.Receita ? 'bg-green-500 text-white' : 'bg-gray-200'}`}>Receita</button>
+                            <button type="button" onClick={() => handleTypeChange(TransactionType.Despesa)} className={`flex-1 py-2 rounded-lg ${type === TransactionType.Despesa ? 'bg-red-500 text-white' : 'bg-gray-200'}`}>Despesa</button>
                         </div>
                     </div>
                      <div>
@@ -75,7 +86,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ onClose, transactio
                     <div>
                         <label className="block text-gray-700 font-semibold mb-2" htmlFor="category">Categoria</label>
                         <select id="category" value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-2 border rounded bg-white" required>
-                            {TransactionCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                            {categoriesToShow.map(cat => <option key={cat.name} value={cat.name}>{cat.emoji} {cat.name}</option>)}
                         </select>
                     </div>
                     <div className="flex justify-end gap-4 pt-4">

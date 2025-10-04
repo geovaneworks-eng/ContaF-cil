@@ -3,7 +3,7 @@ import { useData } from '@/context/DataContext';
 import TransactionList from '@/components/TransactionList';
 import TransactionModal from '@/components/TransactionModal';
 import { PlusCircleIcon } from '@/components/icons';
-import { Transaction, TransactionCategories } from '@/types';
+import { Transaction, AllTransactionCategories } from '@/types';
 
 const TransactionsPage: React.FC = () => {
     const { transactions, loading } = useData();
@@ -39,17 +39,17 @@ const TransactionsPage: React.FC = () => {
                 <div className="mb-6">
                     <h3 className="font-semibold text-gray-700 mb-2">Filtrar por Categoria:</h3>
                     <div className="flex flex-wrap gap-2">
-                        {TransactionCategories.map(cat => (
+                        {AllTransactionCategories.map(cat => (
                             <button 
-                                key={cat}
-                                onClick={() => handleCategoryToggle(cat)}
+                                key={cat.name}
+                                onClick={() => handleCategoryToggle(cat.name)}
                                 className={`px-3 py-1 text-sm font-medium rounded-full transition-colors ${
-                                    selectedCategories.includes(cat)
+                                    selectedCategories.includes(cat.name)
                                         ? 'bg-blue-600 text-white'
                                         : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                 }`}
                             >
-                                {cat}
+                                {cat.emoji} {cat.name}
                             </button>
                         ))}
                     </div>

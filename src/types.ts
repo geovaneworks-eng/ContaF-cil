@@ -37,17 +37,42 @@ export interface WishlistItem {
   purchased: boolean;
 }
 
-export const TransactionCategories = [
-    'Moradia',
-    'Transporte',
-    'Alimentação',
-    'Saúde',
-    'Lazer',
-    'Educação',
-    'Salário',
-    'Investimentos',
-    'Outros',
+export interface Category {
+  name: string;
+  emoji: string;
+}
+
+export const ExpenseCategories: Category[] = [
+    { name: 'Alimentação', emoji: '🍴' },
+    { name: 'Assinatura', emoji: '💵' },
+    { name: 'Cabeleireiro', emoji: '💇' },
+    { name: 'Cachorro', emoji: '🐾' },
+    { name: 'Casa', emoji: '🏠' },
+    { name: 'Compras', emoji: '🛒' },
+    { name: 'Educação', emoji: '📖' },
+    { name: 'Lazer', emoji: '💃' },
+    { name: 'Operação bancária', emoji: '🏦' },
+    { name: 'Pix', emoji: '💸' },
+    { name: 'Saúde', emoji: '🏥' },
+    { name: 'Serviços', emoji: '📄' },
+    { name: 'Supermercado', emoji: '🛒' },
+    { name: 'Transporte', emoji: '🚗' },
+    { name: 'Viagem', emoji: '✈️' },
+    { name: 'Outros', emoji: '...' },
 ];
+
+export const IncomeCategories: Category[] = [
+    { name: 'Salário', emoji: '💰' },
+    { name: 'Investimentos', emoji: '📈' },
+    { name: 'Presente', emoji: '🎁' },
+    { name: 'Renda Extra', emoji: '🤑' },
+    { name: 'Outros', emoji: '...' },
+];
+
+const allCategories = [...IncomeCategories, ...ExpenseCategories];
+export const AllTransactionCategories: Category[] = allCategories.filter((category, index, self) =>
+  index === self.findIndex((c) => c.name === category.name)
+);
 
 export const Months = [
     'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
