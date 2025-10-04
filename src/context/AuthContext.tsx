@@ -38,10 +38,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   useEffect(() => {
-    // 1. Verificação inicial e única da sessão ao carregar a aplicação.
-    const checkInitialSession = async () => {
+    // A partir de agora, usamos APENAS o onAuthStateChange.
+    // Ele é a única fonte de verdade e dispara imediatamente com a sessão atual.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           const fullProfile = await fetchUserProfile(session.user);
           setUser(fullProfile);
@@ -49,23 +49,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setUser(null);
         }
       } catch (e: any) {
-        console.error("Erro ao verificar a sessão inicial:", e.message);
+        console.error("Erro ao processar mudança de autenticação:", e.message);
         setUser(null);
       } finally {
-        // 2. A garantia de que o carregamento termina, aconteça o que acontecer.
+        // Esta é a correção crucial. O 'finally' garante que o carregamento
+        // é desativado, quer a verificação da sessão tenha sucesso ou falhe.
+        // Como isto está dentro do listener, resolve o problema do refresh.
         setLoading(false);
-      }
-    };
-
-    checkInitialSession();
-
-    // 3. Depois da verificação inicial, fica a ouvir por futuras mudanças.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        const fullProfile = await fetchUserProfile(session.user);
-        setUser(fullProfile);
-      } else {
-        setUser(null);
       }
     });
 
