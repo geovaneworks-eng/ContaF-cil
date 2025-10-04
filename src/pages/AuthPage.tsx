@@ -177,7 +177,7 @@ const AuthPage: React.FC = () => {
             <div className="w-full max-w-md mx-auto">
                 <div className="bg-white p-8 rounded-2xl shadow-xl">
                     <div className="text-left mb-8">
-                        <h2 className="text-3xl font-bold text-gray-900">
+                        <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
                             {isLoginView ? 'Bem-Vindo!' : 'Crie sua conta'}
                         </h2>
                         <p className="mt-2 text-sm text-gray-600">
