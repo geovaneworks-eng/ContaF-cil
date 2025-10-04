@@ -44,8 +44,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       };
     } catch (err) {
       console.error('AuthContext: Timeout ou erro de rede ao buscar perfil.', err);
-      // Em caso de timeout, podemos retornar um perfil padrão ou lançar o erro
-      // para que o chamador possa lidar com isso. Lançar o erro é mais explícito.
       throw err;
     }
   }, []);
@@ -92,9 +90,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     });
 
+    // Adiciona um listener para revalidar a sessão quando a aba/janela ganha foco
+    const handleFocus = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (isMounted && session?.user) {
+            const fullProfile = await fetchUserProfile(session.user);
+            if (isMounted) setUser(fullProfile);
+        }
+    };
+
+    window.addEventListener('focus', handleFocus);
+
     return () => {
       isMounted = false;
       subscription.unsubscribe();
+      window.removeEventListener('focus', handleFocus);
     };
   }, [fetchUserProfile]);
 
