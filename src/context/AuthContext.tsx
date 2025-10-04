@@ -27,13 +27,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (profileError) {
       console.error('AuthContext: Erro ao buscar perfil do usuário:', profileError.message);
-      // Se o perfil não for encontrado, criamos um usuário com dados padrão para evitar que a aplicação quebre.
-      return {
-        id: supabaseUser.id,
-        email: supabaseUser.email || '',
-        name: supabaseUser.email?.split('@')[0] || 'Usuário',
-        plan: 'Gratuito',
-      };
     }
 
     return {
@@ -45,8 +38,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // 1. Verificação inicial e única da sessão ao carregar a aplicação.
+    const checkInitialSession = async () => {
       try {
+        const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           const fullProfile = await fetchUserProfile(session.user);
           setUser(fullProfile);
@@ -54,13 +49,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setUser(null);
         }
       } catch (e: any) {
-        console.error("Erro no onAuthStateChange:", e.message);
-        setError(e.message);
+        console.error("Erro ao verificar a sessão inicial:", e.message);
         setUser(null);
       } finally {
-        // Esta é a correção crucial. O 'finally' garante que o carregamento
-        // é desativado, quer a verificação da sessão tenha sucesso ou falhe.
+        // 2. A garantia de que o carregamento termina, aconteça o que acontecer.
         setLoading(false);
+      }
+    };
+
+    checkInitialSession();
+
+    // 3. Depois da verificação inicial, fica a ouvir por futuras mudanças.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        const fullProfile = await fetchUserProfile(session.user);
+        setUser(fullProfile);
+      } else {
+        setUser(null);
       }
     });
 
