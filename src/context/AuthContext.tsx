@@ -13,104 +13,70 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Função de timeout para envolver promessas
-const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => {
-  return new Promise((resolve, reject) => {
-    const timeoutId = setTimeout(() => {
-      reject(new Error(`Request timed out after ${ms} ms`));
-    }, ms);
-
-    promise.then(
-      (res) => {
-        clearTimeout(timeoutId);
-        resolve(res);
-      },
-      (err) => {
-        clearTimeout(timeoutId);
-        reject(err);
-      }
-    );
-  });
-};
-
-
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchUserProfile = useCallback(async (supabaseUser: SupabaseUser): Promise<User | null> => {
-    console.log("AuthContext: Fetching user profile for", supabaseUser.id);
-    try {
-      const profilePromise = supabase
-        .from('profiles')
-        .select('full_name, plan')
-        .eq('id', supabaseUser.id)
-        .single();
+  const fetchUserProfile = useCallback(async (supabaseUser: SupabaseUser, existingUser: User | null = null): Promise<User> => {
+    const { data: userProfileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('full_name, plan')
+      .eq('id', supabaseUser.id)
+      .single();
 
-      // Adicionando timeout de 8 segundos
-      const { data: userProfileData, error: profileError } = await withTimeout(profilePromise, 8000);
-
-      if (profileError) {
-        console.error('AuthContext: Erro ao buscar perfil do usuário:', profileError.message);
-        // Se o perfil não for encontrado, não é um erro fatal. Usamos dados padrão.
-      }
-      
-      console.log("AuthContext: User profile data fetched:", userProfileData);
-
-      return {
-        id: supabaseUser.id,
-        email: supabaseUser.email || '',
-        name: userProfileData?.full_name || supabaseUser.email?.split('@')[0] || 'Usuário',
-        plan: userProfileData?.plan || 'Gratuito',
-      };
-
-    } catch (e: any) {
-      console.error("AuthContext: Uncaught error during fetchUserProfile (possibly timeout):", e);
-      setError(e.message);
-      return null; // Retorna nulo em caso de erro grave como timeout
+    if (profileError) {
+      console.error('AuthContext: Erro ao buscar perfil do usuário:', profileError.message);
     }
+
+    // Retorna o usuário combinado, priorizando os dados do perfil, mas mantendo os dados existentes como fallback
+    return {
+      id: supabaseUser.id,
+      email: supabaseUser.email || '',
+      name: userProfileData?.full_name || existingUser?.name || supabaseUser.email?.split('@')[0] || 'Usuário',
+      plan: userProfileData?.plan || existingUser?.plan || 'Gratuito',
+    };
   }, []);
 
   useEffect(() => {
     const initializeSession = async () => {
-        console.log("AuthContext: initializeSession started.");
-        try {
-            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-            if (sessionError) {
-                console.error("AuthContext: Error getting session:", sessionError);
-                setError(sessionError.message);
-            }
-            
-            if (session?.user) {
-                console.log("AuthContext: Session user found, fetching profile.");
-                const profile = await fetchUserProfile(session.user);
-                setUser(profile);
-            } else {
-                console.log("AuthContext: No session user found.");
-                setUser(null);
-            }
-        } catch (e: any) {
-            console.error("AuthContext: Error during initializeSession:", e);
-            setError(e.message || "Erro desconhecido ao inicializar a sessão.");
-            setUser(null);
-        } finally {
-            console.log("AuthContext: initializeSession finished, setting loading to false.");
-            setLoading(false);
-        }
+      // 1. Obter a sessão. Esta é a chamada mais crítica.
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        setError(sessionError.message);
+      }
+
+      if (session?.user) {
+        // 2. Se houver uma sessão, crie um usuário preliminar IMEDIATAMENTE.
+        const preliminaryUser: User = {
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.email?.split('@')[0] || 'Usuário', // Nome temporário
+          plan: 'Gratuito', // Plano padrão temporário
+        };
+        setUser(preliminaryUser);
+
+        // 3. Em segundo plano, busque o perfil completo e atualize o estado.
+        fetchUserProfile(session.user, preliminaryUser).then(fullProfile => {
+          setUser(fullProfile);
+        });
+      } else {
+        setUser(null);
+      }
+
+      // 4. Pare o carregamento. A UI pode agora ser renderizada.
+      setLoading(false);
     };
 
     initializeSession();
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-        console.log("AuthContext: onAuthStateChange event:", event);
         if (event === 'SIGNED_IN' && session?.user) {
-            const profile = await fetchUserProfile(session.user);
-            setUser(profile);
-            setLoading(false);
+            const fullProfile = await fetchUserProfile(session.user);
+            setUser(fullProfile);
         } else if (event === 'SIGNED_OUT') {
             setUser(null);
-            setLoading(false);
         }
     });
 
