@@ -17,7 +17,7 @@ const TestimonialCard: React.FC = () => {
             <figcaption className="flex items-center justify-center mt-6 space-x-3">
                 <img 
                     className="w-10 h-10 rounded-full object-cover" 
-                    src="https://images.pexels.com/photos/3772510/pexels-photo-3772510.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
+                    src="https://images.pexels.com/photos/1848565/pexels-photo-1848565.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
                     alt="Foto de Juliana S." 
                 />
                 <div className="flex items-center divide-x-2 divide-gray-500">
