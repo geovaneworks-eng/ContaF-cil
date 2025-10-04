@@ -15,7 +15,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true); // Começa a carregar
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchUserProfile = useCallback(async (supabaseUser: SupabaseUser): Promise<User> => {
@@ -38,17 +38,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   useEffect(() => {
-    // O onAuthStateChange do Supabase é a forma mais fiável de obter os dados da sessão.
-    // Ele é acionado uma vez no carregamento inicial com a sessão atual e, em seguida, sempre que o estado de autenticação muda.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // Função para verificar a sessão inicial de forma fiável.
+    const checkInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         const fullProfile = await fetchUserProfile(session.user);
         setUser(fullProfile);
-      } else {
+      }
+      // Independentemente de haver sessão ou não, o carregamento inicial termina aqui.
+      setLoading(false);
+    };
+
+    checkInitialSession();
+
+    // Configura o listener para MUDANÇAS de estado futuras (login, logout, etc.).
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const fullProfile = await fetchUserProfile(session.user);
+        setUser(fullProfile);
+      } else if (event === 'SIGNED_OUT') {
         setUser(null);
       }
-      // Na primeira vez que isto é executado, a sessão é restaurada e podemos parar de carregar.
-      setLoading(false);
     });
 
     return () => {
