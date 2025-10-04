@@ -168,12 +168,17 @@ const AuthPage: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
+        <div className="relative flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
+            <div className="absolute top-0 left-0 p-4 md:p-8">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+                    Conta Fácil
+                </h1>
+            </div>
             <div className="w-full max-w-md mx-auto">
                 <div className="bg-white p-8 rounded-2xl shadow-xl">
                     <div className="text-left mb-8">
                         <h2 className="text-3xl font-bold text-gray-900">
-                            {isLoginView ? 'Bem-vindo de volta!' : 'Crie sua conta'}
+                            {isLoginView ? 'Bem-Vindo!' : 'Crie sua conta'}
                         </h2>
                         <p className="mt-2 text-sm text-gray-600">
                             {isLoginView ? 'Faça login para gerir as suas finanças.' : 'Comece a organizar a sua vida financeira hoje.'}
