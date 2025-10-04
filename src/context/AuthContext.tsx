@@ -19,70 +19,81 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [error, setError] = useState<string | null>(null);
 
   const fetchUserProfile = useCallback(async (supabaseUser: SupabaseUser): Promise<User> => {
-    const { data: userProfileData, error: profileError } = await supabase
+    const fetchPromise = supabase
       .from('profiles')
       .select('full_name, plan')
       .eq('id', supabaseUser.id)
       .single();
 
-    if (profileError) {
-      console.error('AuthContext: Erro ao buscar perfil do usuário:', profileError.message);
-    }
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Timeout: A requisição ao Supabase demorou demasiado.')), 8000)
+    );
 
-    return {
-      id: supabaseUser.id,
-      email: supabaseUser.email || '',
-      name: userProfileData?.full_name || supabaseUser.email?.split('@')[0] || 'Usuário',
-      plan: userProfileData?.plan || 'Gratuito',
-    };
+    try {
+      const { data: userProfileData, error: profileError } = await Promise.race([fetchPromise, timeoutPromise as Promise<any>]);
+
+      if (profileError) {
+        console.error('AuthContext: Erro ao buscar perfil do usuário:', profileError.message);
+      }
+
+      return {
+        id: supabaseUser.id,
+        email: supabaseUser.email || '',
+        name: userProfileData?.full_name || supabaseUser.email?.split('@')[0] || 'Usuário',
+        plan: userProfileData?.plan || 'Gratuito',
+      };
+    } catch (err) {
+      console.error('AuthContext: Timeout ou erro de rede ao buscar perfil.', err);
+      // Em caso de timeout, podemos retornar um perfil padrão ou lançar o erro
+      // para que o chamador possa lidar com isso. Lançar o erro é mais explícito.
+      throw err;
+    }
   }, []);
 
   useEffect(() => {
-    let isMounted = true; // Flag para evitar atualizações de estado em componentes desmontados
-
-    const handleAuthStateChange = async (session: any | null) => {
-      if (!isMounted) return;
-
-      if (session?.user) {
-        const fullProfile = await fetchUserProfile(session.user);
-        if (isMounted) setUser(fullProfile);
-      } else {
-        if (isMounted) setUser(null);
-      }
-      if (isMounted) setLoading(false); // Garante que loading é definido como false após qualquer mudança de estado
-    };
+    let isMounted = true;
 
     const getInitialSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) throw error;
         
-        // Chama handleAuthStateChange com a sessão inicial
-        await handleAuthStateChange(session);
-
+        if (isMounted) {
+          if (session?.user) {
+            const fullProfile = await fetchUserProfile(session.user);
+            if (isMounted) setUser(fullProfile);
+          } else {
+            setUser(null);
+          }
+        }
       } catch (err: any) {
         console.error("Erro ao recuperar sessão inicial:", err.message);
         if (isMounted) setUser(null);
-        if (isMounted) setLoading(false); // Garante que loading é definido como false mesmo em caso de erro inicial
+      } finally {
+        if (isMounted) setLoading(false);
       }
     };
 
     getInitialSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-        // Para mudanças subsequentes, apenas atualiza o estado do utilizador, o loading já deve ser false
         if (isMounted) {
-            if (session?.user) {
-                const fullProfile = await fetchUserProfile(session.user);
-                if (isMounted) setUser(fullProfile);
-            } else {
-                if (isMounted) setUser(null);
+            try {
+                if (session?.user) {
+                    const fullProfile = await fetchUserProfile(session.user);
+                    if (isMounted) setUser(fullProfile);
+                } else {
+                    if (isMounted) setUser(null);
+                }
+            } catch (err: any) {
+                console.error("Erro durante o onAuthStateChange:", err.message);
+                if(isMounted) setUser(null);
             }
         }
     });
 
     return () => {
-      isMounted = false; // Limpeza
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, [fetchUserProfile]);
