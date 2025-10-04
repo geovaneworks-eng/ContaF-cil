@@ -38,37 +38,51 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   useEffect(() => {
+    let isMounted = true; // Flag para evitar atualizações de estado em componentes desmontados
+
+    const handleAuthStateChange = async (session: any | null) => {
+      if (!isMounted) return;
+
+      if (session?.user) {
+        const fullProfile = await fetchUserProfile(session.user);
+        if (isMounted) setUser(fullProfile);
+      } else {
+        if (isMounted) setUser(null);
+      }
+      if (isMounted) setLoading(false); // Garante que loading é definido como false após qualquer mudança de estado
+    };
+
     const getInitialSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) throw error;
+        
+        // Chama handleAuthStateChange com a sessão inicial
+        await handleAuthStateChange(session);
 
-        if (session?.user) {
-          const fullProfile = await fetchUserProfile(session.user);
-          setUser(fullProfile);
-        } else {
-          setUser(null);
-        }
       } catch (err: any) {
         console.error("Erro ao recuperar sessão inicial:", err.message);
-        setUser(null);
-      } finally {
-        setLoading(false);
+        if (isMounted) setUser(null);
+        if (isMounted) setLoading(false); // Garante que loading é definido como false mesmo em caso de erro inicial
       }
     };
 
     getInitialSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-        if (session?.user) {
-            const fullProfile = await fetchUserProfile(session.user);
-            setUser(fullProfile);
-        } else {
-            setUser(null);
+        // Para mudanças subsequentes, apenas atualiza o estado do utilizador, o loading já deve ser false
+        if (isMounted) {
+            if (session?.user) {
+                const fullProfile = await fetchUserProfile(session.user);
+                if (isMounted) setUser(fullProfile);
+            } else {
+                if (isMounted) setUser(null);
+            }
         }
     });
 
     return () => {
+      isMounted = false; // Limpeza
       subscription.unsubscribe();
     };
   }, [fetchUserProfile]);
