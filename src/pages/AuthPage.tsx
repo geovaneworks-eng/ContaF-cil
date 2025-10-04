@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import FinancialInsightBanner from '@/components/FinancialInsightBanner';
+import TestimonialCard from '@/components/TestimonialCard';
 
 interface AuthFormProps {
     isLogin: boolean;
@@ -162,53 +163,65 @@ const AuthPage: React.FC = () => {
         setError(null);
     };
 
+
+
     const toggleView = () => {
         setIsLoginView(!isLoginView);
         clearForm();
     };
 
     return (
-        <div className="relative flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
-            <div className="absolute top-0 left-0 p-4 md:p-8">
+        <div className="relative flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50 overflow-hidden">
+            <div className="absolute top-0 left-0 p-4 md:p-8 z-10">
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
                     Conta Fácil
                 </h1>
             </div>
-            <div className="w-full max-w-md mx-auto">
-                <div className="bg-white p-8 rounded-2xl shadow-xl">
-                    <div className="text-left mb-8">
-                        <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-                            {isLoginView ? 'Bem-Vindo!' : 'Crie sua conta'}
-                        </h2>
-                        <p className="mt-2 text-sm text-gray-600">
-                            {isLoginView ? 'Faça login para gerir as suas finanças.' : 'Comece a organizar a sua vida financeira hoje.'}
-                        </p>
+
+            <div className="w-full max-w-6xl mx-auto px-4 py-20">
+                <div className="grid lg:grid-cols-2 gap-12 items-center">
+                    <div className="w-full max-w-md mx-auto">
+                        <div className="bg-white p-8 rounded-2xl shadow-xl">
+                            <div className="text-left mb-8">
+                                <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+                                    {isLoginView ? 'Bem-Vindo!' : 'Crie sua conta'}
+                                </h2>
+                                <p className="mt-2 text-sm text-gray-600">
+                                    {isLoginView ? 'Faça login para gerir as suas finanças.' : 'Comece a organizar a sua vida financeira hoje.'}
+                                </p>
+                            </div>
+                            
+                            <AuthForm 
+                                isLogin={isLoginView}
+                                onSubmit={isLoginView ? handleLogin : handleSignUp}
+                                fullName={fullName}
+                                setFullName={setFullName}
+                                email={email}
+                                setEmail={setEmail}
+                                password={password}
+                                setPassword={setPassword}
+                                loading={loading}
+                            />
+
+                            {error && <p className="mt-4 text-center text-sm text-red-600">{error}</p>}
+
+                            <div className="mt-6 text-center">
+                                <p className="text-sm text-gray-600">
+                                    {isLoginView ? 'Não tem uma conta?' : 'Já tem uma conta?'}
+                                    <button onClick={toggleView} className="font-medium text-blue-600 hover:text-blue-500 ml-1">
+                                        {isLoginView ? 'Registe-se' : 'Faça login'}
+                                    </button>
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <AuthForm 
-                        isLogin={isLoginView}
-                        onSubmit={isLoginView ? handleLogin : handleSignUp}
-                        fullName={fullName}
-                        setFullName={setFullName}
-                        email={email}
-                        setEmail={setEmail}
-                        password={password}
-                        setPassword={setPassword}
-                        loading={loading}
-                    />
 
-                    {error && <p className="mt-4 text-center text-sm text-red-600">{error}</p>}
-
-                    <div className="mt-6 text-center">
-                        <p className="text-sm text-gray-600">
-                            {isLoginView ? 'Não tem uma conta?' : 'Já tem uma conta?'}
-                            <button onClick={toggleView} className="font-medium text-blue-600 hover:text-blue-500 ml-1">
-                                {isLoginView ? 'Registe-se' : 'Faça login'}
-                            </button>
-                        </p>
+                    <div className="flex justify-center">
+                        <TestimonialCard />
                     </div>
                 </div>
             </div>
+
             <div className="absolute bottom-0 w-full">
                 <FinancialInsightBanner />
             </div>
