@@ -13,64 +13,75 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Função de timeout para envolver promessas
+const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(new Error(`Request timed out after ${ms} ms`));
+    }, ms);
+
+    promise.then(
+      (res) => {
+        clearTimeout(timeoutId);
+        resolve(res);
+      },
+      (err) => {
+        clearTimeout(timeoutId);
+        reject(err);
+      }
+    );
+  });
+};
+
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchUserProfile = useCallback(async (supabaseUser: SupabaseUser): Promise<User> => {
+  const fetchUserProfile = useCallback(async (supabaseUser: SupabaseUser): Promise<User | null> => {
     console.log("AuthContext: Fetching user profile for", supabaseUser.id);
-    console.log("AuthContext: Attempting to query 'profiles' table...");
-    
-    let data, profileError;
     try {
-      console.log("AuthContext: Executing simplified Supabase query for profile...");
-      // Alteração aqui: Removendo .eq() e .single() para testar uma consulta mais básica
-      const result = await supabase
+      const profilePromise = supabase
         .from('profiles')
-        .select('full_name, plan'); // Apenas seleciona tudo, sem filtro ou single
-      data = result.data;
-      profileError = result.error;
-      console.log("AuthContext: Simplified Supabase query for profile completed.");
-    } catch (e: any) {
-      console.error("AuthContext: Uncaught error during simplified Supabase profile query:", e);
-      profileError = { message: e.message || "Unknown error during profile query" };
-    }
+        .select('full_name, plan')
+        .eq('id', supabaseUser.id)
+        .single();
 
-    if (profileError) {
-      console.error('AuthContext: Erro ao buscar perfil do usuário (simplificado):', profileError.message);
-      console.warn('AuthContext: Não foi possível buscar o perfil completo do usuário, usando valores padrão:', profileError.message);
+      // Adicionando timeout de 8 segundos
+      const { data: userProfileData, error: profileError } = await withTimeout(profilePromise, 8000);
+
+      if (profileError) {
+        console.error('AuthContext: Erro ao buscar perfil do usuário:', profileError.message);
+        // Se o perfil não for encontrado, não é um erro fatal. Usamos dados padrão.
+      }
+      
+      console.log("AuthContext: User profile data fetched:", userProfileData);
+
       return {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
-        name: supabaseUser.email?.split('@')[0] || 'Usuário',
-        plan: 'Gratuito',
+        name: userProfileData?.full_name || supabaseUser.email?.split('@')[0] || 'Usuário',
+        plan: userProfileData?.plan || 'Gratuito',
       };
-    }
-    console.log("AuthContext: User profile fetched successfully (simplified):", data);
-    // Se a consulta simplificada retornar múltiplos perfis, pegamos o primeiro ou um padrão
-    const userProfileData = data && data.length > 0 ? data[0] : null;
 
-    return {
-      id: supabaseUser.id,
-      email: supabaseUser.email || '',
-      name: userProfileData?.full_name || supabaseUser.email?.split('@')[0] || 'Usuário',
-      plan: userProfileData?.plan || 'Gratuito',
-    };
+    } catch (e: any) {
+      console.error("AuthContext: Uncaught error during fetchUserProfile (possibly timeout):", e);
+      setError(e.message);
+      return null; // Retorna nulo em caso de erro grave como timeout
+    }
   }, []);
 
   useEffect(() => {
-    console.log("AuthContext: useEffect triggered.");
     const initializeSession = async () => {
         console.log("AuthContext: initializeSession started.");
         try {
-            console.log("AuthContext: Calling supabase.auth.getSession()...");
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
             if (sessionError) {
                 console.error("AuthContext: Error getting session:", sessionError);
                 setError(sessionError.message);
             }
-            console.log("AuthContext: supabase.auth.getSession() returned:", session);
+            
             if (session?.user) {
                 console.log("AuthContext: Session user found, fetching profile.");
                 const profile = await fetchUserProfile(session.user);
@@ -91,19 +102,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     initializeSession();
     
-    console.log("AuthContext: Setting up onAuthStateChange listener.");
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-        console.log("AuthContext: onAuthStateChange event:", event, "session:", session);
-        if (session?.user) {
+        console.log("AuthContext: onAuthStateChange event:", event);
+        if (event === 'SIGNED_IN' && session?.user) {
             const profile = await fetchUserProfile(session.user);
             setUser(profile);
-        } else {
+            setLoading(false);
+        } else if (event === 'SIGNED_OUT') {
             setUser(null);
+            setLoading(false);
         }
     });
 
     return () => {
-      console.log("AuthContext: Cleaning up onAuthStateChange subscription.");
       subscription.unsubscribe();
     };
   }, [fetchUserProfile]);
