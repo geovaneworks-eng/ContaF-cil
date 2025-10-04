@@ -27,6 +27,8 @@ const SettingsPage: React.FC = () => {
 
     const handlePasswordUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!user) return;
+
         if (password !== confirmPassword) {
             setMessage({ type: 'error', text: 'As senhas não coincidem.' });
             return;
@@ -38,8 +40,17 @@ const SettingsPage: React.FC = () => {
         setLoading(true);
         setMessage(null);
         try {
-            const { error } = await supabase.auth.updateUser({ password });
-            if (error) throw error;
+            // 1. Atualiza a senha do utilizador
+            const { error: updateError } = await supabase.auth.updateUser({ password });
+            if (updateError) throw updateError;
+
+            // 2. Reautentica com a nova senha para manter a sessão ativa
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: user.email,
+                password: password,
+            });
+            if (signInError) throw signInError;
+
             setMessage({ type: 'success', text: 'Senha atualizada com sucesso!' });
             setPassword('');
             setConfirmPassword('');
