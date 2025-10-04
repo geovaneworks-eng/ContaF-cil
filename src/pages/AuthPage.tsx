@@ -189,6 +189,12 @@ const AuthPage: React.FC = () => {
                                 <p className="mt-2 text-sm text-gray-600">
                                     {isLoginView ? 'Faça login para gerir as suas finanças.' : 'Comece a organizar a sua vida financeira hoje.'}
                                 </p>
+                                {!isLoginView && (
+                                    <div className="mt-4 p-3 bg-green-100 border-l-4 border-green-500 text-green-800 rounded-r-lg">
+                                        <p className="font-bold">🎁 Bónus de Registo:</p>
+                                        <p className="text-sm">Ao criar a sua conta agora, ganha um minicurso de finanças pessoais!</p>
+                                    </div>
+                                )}
                             </div>
                             
                             <AuthForm 
