@@ -27,7 +27,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (profileError) {
       console.error('AuthContext: Erro ao buscar perfil do usuário:', profileError.message);
-      throw profileError;
+      // Se o perfil não for encontrado, criamos um usuário com dados padrão para evitar que a aplicação quebre.
+      return {
+        id: supabaseUser.id,
+        email: supabaseUser.email || '',
+        name: supabaseUser.email?.split('@')[0] || 'Usuário',
+        plan: 'Gratuito',
+      };
     }
 
     return {
@@ -39,14 +45,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   useEffect(() => {
-    const checkInitialSession = async () => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-            throw sessionError;
-        }
-
         if (session?.user) {
           const fullProfile = await fetchUserProfile(session.user);
           setUser(fullProfile);
@@ -54,23 +54,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setUser(null);
         }
       } catch (e: any) {
-        console.error("Erro ao verificar a sessão inicial:", e.message);
+        console.error("Erro no onAuthStateChange:", e.message);
         setError(e.message);
         setUser(null);
       } finally {
-        // Este bloco é a garantia de que o carregamento sempre termina.
+        // Esta é a correção crucial. O 'finally' garante que o carregamento
+        // é desativado, quer a verificação da sessão tenha sucesso ou falhe.
         setLoading(false);
-      }
-    };
-
-    checkInitialSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        const fullProfile = await fetchUserProfile(session.user);
-        setUser(fullProfile);
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
       }
     });
 
